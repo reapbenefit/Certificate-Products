@@ -1,0 +1,402 @@
+## Important!!!
+## Everytime you run the script clear everything from the google drive (even trash) and Certificate_Final_URL google sheet
+## Clear the google sheet output page as well
+## Change the api token as well
+
+# Import all the libraries
+
+import pandas as pd
+import numpy as np
+import os.path
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib.cm import ScalarMappable
+from matplotlib.lines import Line2D
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from textwrap import wrap
+from PIL import Image, ImageFont, ImageDraw 
+import gspread 
+from google.oauth2 import service_account
+import json
+import requests
+from Google import Create_Service
+import openpyxl
+
+# Load our data set which is the google sheet
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SERVICE_ACCOUNT_FILE = 'gsheet.json'
+
+credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+
+gc = gspread.authorize(credentials)
+
+worksheet = gc.open_by_key('15UPyxQ7r7GYpMLNkkXXcfi9TdM1a_I5698fnW4kNxyo').sheet1
+rows = worksheet.get_all_values()
+
+# Convert google sheet data to data frame
+
+df = pd.DataFrame(rows[1:], columns=rows[0])
+df[df==""] = np.NaN
+df.fillna(method="ffill",inplace=True)
+
+cols=list(df.columns)
+not_used=cols[1:3]
+print("These columns are of no use: ",not_used)
+
+start=0
+end=0
+for j in range(0,len(cols)):
+    if (cols[j]=='Ques1'):
+        start=j
+        
+    elif (cols[j]=='Ques10'):
+        end=j
+        
+
+action=[]
+
+counts = df.pivot_table(index=['Name'], aggfunc='size')
+counts = pd.DataFrame(counts) 
+counts.index.name = 'Name'
+counts.reset_index(inplace=True) 
+counts.columns = ['Name','Counts']
+df = df.merge(counts)
+
+
+def remove_duplicate(test_list):
+    res = []
+    for i in test_list:
+        if i not in res:
+            res.append(i)
+    return res
+
+def frequency(l):
+    max = 0
+    res = l[0]
+    for i in l:
+        freq = l.count(i)
+        if freq > max:
+            max = freq
+            res = i
+    return res
+
+# Get a list of all names
+name=[]
+name_list=[]
+
+for i in range(0,len(df)):
+    name.append(df.loc[i,"Name"])
+    name_list.append(df.loc[i,"Name"])
+    
+name=remove_duplicate(name)
+
+def isNaN(string):
+    return string != string
+    
+#Certificate Generation function
+def certificate_generate(name_list,name,start,end):
+    
+    index=name_list.index(name)
+    chart_list=[]
+
+    # Generate the skill map based on the question answered in the whatsapp chatbot
+
+    ##Entrepreneurship -    Q8
+    ##Data Orientation -    Q1
+    ##Hands-on skills -     Q2
+    ##Citizenship -         Q9
+    ##Critical Thinking -   Q6
+    ##Problem Solving -     Q4
+    ##Communication Colab - Q3
+    ##Grit -                Q7
+    ##Applied Empathy -     Q10
+    ##Communication -       Q5
+    
+    
+    for j in range(start,end+1):
+        l=[]
+        if (df.columns[j]=="Ques1"):
+            l.append("Data Orientation")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+        
+        elif (df.columns[j]=="Ques2"):
+            l.append("HandsOn")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+
+        elif (df.columns[j]=="Ques3"):
+            l.append("Communication Colab")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+
+             
+        elif (df.columns[j]=="Ques4"):
+            l.append("Problem Solving")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+    
+        elif (df.columns[j]=="Ques5"):
+            l.append("Communication")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+
+        elif (df.columns[j]=="Ques6"):
+            l.append("Critical Thinking")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+
+        elif (df.columns[j]=="Ques7"):
+            l.append("Grit")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+
+        elif (df.columns[j]=="Ques8"):
+            l.append("Entrepreneurship")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+             
+        elif (df.columns[j]=="Ques9"):
+            l.append("Citizenship")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+            
+        elif (df.columns[j]=="Ques10"):
+            l.append("Applied Empathy")
+            if (isNaN(df.loc[index,df.columns[j]])==True):
+                l.append(0)
+            elif ((int(df.loc[index,df.columns[j]])==6)):
+                l.append(0)
+            else:
+                l.append(int(df.loc[index,df.columns[j]])*500)
+            chart_list.append(l)
+    
+    
+    # Generate the skill map using a circular bar plot
+    
+    chart_data = pd.DataFrame(chart_list, columns = ['Skill', 'Score'])
+
+    chart_data = chart_data.sort_values("Score", ascending=False)
+
+    ANGLES = np.linspace(0.05, 2 * np.pi - 0.05, len(chart_data), endpoint=False)
+
+    LENGTHS = chart_data["Score"].values
+
+    REGION = chart_data["Skill"].values
+
+    
+    plt.rcParams.update({"font.family": "Arial"})
+
+    plt.rcParams["text.color"] = 'black'
+
+    plt.rc("axes", unicode_minus=False)
+
+    COLORS = ["#54A8A9","#FF5733","#C81B1B"]
+
+    cmap = mpl.colors.LinearSegmentedColormap.from_list("my color", COLORS, N=256)
+
+    fig, ax = plt.subplots(figsize=(9, 12.6), subplot_kw={"projection": "polar"})
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    ax.set_theta_offset(1.2 * np.pi / 2)
+    ax.set_ylim(0,3500)
+
+    ax.bar(ANGLES, LENGTHS, color=COLORS, alpha=0.9, width=0.52, zorder=10)
+
+    stepsize=250
+
+    start, end = ax.get_ylim()
+    ax.set_yticks(np.arange(start, end, stepsize))
+    ax.set_xticks(ANGLES)
+    ax.set_xticklabels(REGION, size=12);
+    ax.set_yticklabels([]);
+
+    XTICKS = ax.xaxis.get_major_ticks()
+    for tick in XTICKS:
+        tick.set_pad(40)
+
+    ax.xaxis.grid(True,color='#154360')
+    ax.yaxis.grid(True,color='#154360')
+
+
+    plt.savefig('certificate_graph.png')
+
+    ##Congratulations! This is to certify that ______
+    ##was part of the ____ program. The skills activated is as below 
+    ##You are a ___. You are at engaged level.
+   
+    im2 = Image.open("CuriousCat.png")
+    char="Curious Cat"
+    empty_img = Image.open("blank_certificate.png")
+
+    # Text on the certificate
+
+    text1 = "Congratulations! This is to certify that "
+
+    text2 = name+" has achieved the following skills" 
+
+    text4 = "You are a "+char+". You are at Level 1"
+    
+
+    font = ImageFont.truetype('/fonts/Arial/arialbd.ttf', size=55)
+
+    font1 = ImageFont.truetype('/fonts/Arial/arialbd.ttf', size=20)
+
+    image_editable = ImageDraw.Draw(empty_img)
+    image_editable.text((375,500), text1, (255, 255, 255), font=font)
+    image_editable.text((375,575), text2, (255, 255, 255), font=font)
+
+        
+    image_editable.text((1050,2100), text4, (0, 0, 0), font=font1)
+    
+    empty_img.save("blank_certificate_result.png")
+
+
+    im1 = Image.open("blank_certificate_result.png")
+
+    im3 = Image.open("certificate_graph.png")
+
+    im2 = im2.resize((400,400))
+    im3 = im3.resize((500,700))
+
+    empty_img = im1.copy()
+    empty_img.paste(im2, (1100, 1600))
+    empty_img.paste(im3, (400, 1475))
+    empty_img.save(name+"_Certificate.png")
+
+    return name+"_Certificate.png"    
+    
+# Generate the certificate for everyone 
+
+cert_list=[]
+
+for items in range(0,len(name)):
+    cert_list.append(certificate_generate(name_list,name[items],start,end))
+    
+
+
+# upload certificate on google drive
+
+headers = {"Authorization": "Bearer ya29.A0ARrdaM8NFRX7j5Wb1pwoisXF2_Y3-qHDFx3oXgm1anvD70pwbxb2rkYOAxI_any2zPkmnCHHTtJOvpL936ZOk1HADcvJjsnR7XxiU62Mnxv-xHDloWJpILh3BQ5pzQUvKM-Wuw67PSux4KxeRH8vxnTHskG0YUNnWUtBVEFTQVRBU0ZRRl91NjFWZFV5d3RxMjk2eVU1VlA4ZmdWNWlmUQ0163"}
+
+for i in range(0,len(cert_list)):
+    para = {
+        "name": cert_list[i],
+        "parents":['1le9lrYxth7N_b1reAgjHZYrdHFypq-_p'],
+    }
+    files = {
+        'data': ('metadata', json.dumps(para), 'application/json; charset=UTF-8'),
+        'file': open("./"+cert_list[i], "rb")
+    }
+    r = requests.post(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        headers=headers,
+        files=files
+    )
+
+print("Uploaded on google drive !!")
+
+
+
+CLIENT_SECRET_FILE = 'client_secret.json'
+API_NAME = 'drive'
+API_VERSION = 'v3'
+SCOPES = ['https://www.googleapis.com/auth/drive']
+
+service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
+
+# Update Sharing Setting
+file_id = '1le9lrYxth7N_b1reAgjHZYrdHFypq-_p'
+query = f"parents = '{file_id}'"
+
+response = service.files().list(q=query).execute()
+files = response.get('files')
+nextPageToken = response.get('nextPageToken')
+
+
+while nextPageToken:
+    response = service.files().list(q=query).execute()
+    files = response.get('files')
+    nextPageToken = response.get('nextPageToken')
+
+ans=[]
+
+for i in range(1,len(name)+1):
+    ans.append(name[-i])
+ 
+drive_data = pd.DataFrame(files)
+
+drive_data.insert(loc = 0,
+          column = 'Names',
+          value = ans)
+
+
+# upload all g drive image url to a new google sheet
+API_SERVICE_NAME = 'sheets'
+API_VERSION = 'v4'
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+service = Create_Service(CLIENT_SECRET_FILE, API_SERVICE_NAME, API_VERSION, SCOPES)
+
+spreadsheet_id = '15UPyxQ7r7GYpMLNkkXXcfi9TdM1a_I5698fnW4kNxyo'
+
+response_date = service.spreadsheets().values().append(
+        spreadsheetId=spreadsheet_id,
+        valueInputOption='RAW',
+        range='Output!A1:E1',
+        body=dict(
+            majorDimension='ROWS',
+            values=drive_data.T.reset_index().T.values.tolist())
+    ).execute()
+
+print("Updated Google Sheet with Drive URLS!!")
